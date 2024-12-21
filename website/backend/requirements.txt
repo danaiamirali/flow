@@ -1,0 +1,10 @@
+anyio==4.7.0
+blinker==1.9.0
+click==8.1.7
+fastapi==0.115.6
+idna==3.10
+Jinja2==3.1.4
+pydantic==2.10.4
+pydantic_core==2.27.2
+typing_extensions==4.12.2
+uvicorn==0.34.0

@@ -1,3 +1,7 @@
+const API_BASE_URL = process.env.API_BASE_URL;
+
+console.log(API_BASE_URL);
+
 async function fetchPolls() {
     const response = await fetch(`${API_BASE_URL}/poll`);
     const polls = await response.json();

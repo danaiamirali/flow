@@ -1,3 +1,5 @@
+const API_BASE_URL = process.env.API_BASE_URL;
+
 const params = new URLSearchParams(window.location.search);
 const pollId = params.get("poll_id");
 

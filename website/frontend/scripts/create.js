@@ -1,3 +1,5 @@
+const API_BASE_URL = process.env.API_BASE_URL;
+
 const form = document.getElementById("create-poll-form");
 const optionsContainer = document.getElementById("options-container");
 const addOptionButton = document.getElementById("add-option");

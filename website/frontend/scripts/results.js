@@ -1,3 +1,5 @@
+const API_BASE_URL = process.env.API_BASE_URL;
+
 async function fetchAllResults() {
     const response = await fetch(`${API_BASE_URL}/results`);
     const allResults = await response.json();

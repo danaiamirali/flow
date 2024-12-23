@@ -61,8 +61,15 @@ def create_poll() -> int:
     except requests.exceptions.RequestException as e:
         vprint("Error creating poll:", e)
 
-def cast_votes(poll_id: int) -> None:
+def cast_votes() -> None:
     # Logic for voting on existing polls, possibly with random poll IDs
+    vprint("cast_votes")
+    polls = view_all_polls()
+
+    poll_ids = [p["poll_id"] for p in polls]
+
+    poll_id = random.choice(poll_ids)
+
     vprint("cast_votes", poll_id)
     result = view_poll_result(poll_id)
     if result is None:
@@ -79,8 +86,14 @@ def cast_votes(poll_id: int) -> None:
             choice
     )
 
-def view_poll_result(poll_id: int) -> list:
+def view_poll_result() -> list:
     # Logic for viewing a single poll’s result (GET to /polls/<id>)
+    vprint("view_poll_result")
+    polls = view_all_polls()
+
+    poll_ids = [p["poll_id"] for p in polls]
+
+    poll_id = random.choice(poll_ids)
     vprint("view_poll_result", poll_id)
     response = requests.get(
             f"{API_BASE_URL}/result/{poll_id}"

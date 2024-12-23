@@ -9,6 +9,10 @@ import json
 
 load_dotenv()
 
+certificate = os.getenv("CA_CERTIFICATE")
+with open("ca-certificate.crt", 'w') as f:
+    f.write(certificate)
+
 def to_serializable(value):
     if isinstance(value, BaseModel):
         return value.dict()

@@ -1,5 +1,4 @@
 import logging
-import os
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,9 +6,6 @@ from pydantic import BaseModel
 from typing import List
 from kafka_logs import log_event
 from database import Database, execute_sql_file
-from dotenv import load_dotenv
-
-load_dotenv()
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -35,10 +31,6 @@ async def startup():
     logger.info("Initializing database pool and executing SQL file.")
     await Database.init_pool()
     await execute_sql_file("sql/initialize_tables.sql")
-    logger.info("Creating certificate.")
-    certificate = os.getenv("CA_CERTIFICATE")
-    with open("ca-certificate.crt", 'w') as f:
-        f.write(certificate)
 
 # Pydantic Models
 class PollCreate(BaseModel):

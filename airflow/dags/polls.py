@@ -3,7 +3,7 @@ import requests
 import os
 import instructor
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from wonderwords import RandomWord
 from pydantic import BaseModel
 from openai import OpenAI
@@ -71,7 +71,18 @@ def cast_votes() -> None:
     poll_id = random.choice(poll_ids)
 
     vprint("cast_votes", poll_id)
-    result = view_poll_result(poll_id)
+    
+    response = requests.get(
+            f"{API_BASE_URL}/result/{poll_id}"
+    )
+
+    if response.status_code == 200:
+        data = response.json()
+        vprint(data)
+        result = data["results"]
+    else:
+        return
+   
     if result is None:
         vprint("result was none")
         return
@@ -83,7 +94,7 @@ def cast_votes() -> None:
 
     requests.post(
             f"{API_BASE_URL}/vote/{poll_id}",
-            choice
+            json={"option":choice}
     )
 
 def view_poll_result() -> list:
@@ -134,13 +145,36 @@ with DAG(
         python_callable=create_poll
     )
 
-# Cast Votes DAG (frequent voting every 2 minutes, more active on weekends)
+# Create Polls DAG super frequently 
+with DAG(
+    dag_id="create_polls_dag_frequent",
+    start_date=datetime(2024, 1, 1),
+    schedule_interval=timedelta(minutes=30),
+    catchup=False
+) as create_polls_dag:
+    create_poll_task = PythonOperator(
+        task_id="create_poll_task",
+        python_callable=create_poll
+    )
+
+# Cast Votes DAG 
 with DAG(
     dag_id="cast_votes_dag",
     start_date=datetime(2024, 1, 1),
-    schedule_interval="*/2 * * * 6,0",  # Sat & Sun
+    schedule_interval=timedelta(seconds=10),
     catchup=False
 ) as cast_votes_dag:
+    cast_votes_task = PythonOperator(
+        task_id="cast_votes_task_frequent",
+        python_callable=cast_votes
+    )
+    
+with DAG(
+    dag_id="cast_votes_dag_weekend",
+    start_date=datetime(2024, 1, 1),
+    schedule_interval="*/1 * * * 6,0",  # Sat & Sun
+    catchup=False
+) as cast_votes_dag_weekend:
     cast_votes_task = PythonOperator(
         task_id="cast_votes_task",
         python_callable=cast_votes
@@ -150,7 +184,7 @@ with DAG(
 with DAG(
     dag_id="view_poll_result_dag",
     start_date=datetime(2024, 1, 1),
-    schedule_interval="*/5 * * * *",
+    schedule_interval=timedelta(seconds=10),
     catchup=False
 ) as view_poll_result_dag:
     view_poll_result_task = PythonOperator(
@@ -158,11 +192,22 @@ with DAG(
         python_callable=view_poll_result
     )
 
-# View All Polls DAG (every 30 minutes)
+with DAG(
+    dag_id="view_poll_result_dag_weekend",
+    start_date=datetime(2024, 1, 1),
+    schedule_interval="*/1 * * * 6,0",  # Sat & Sun
+    catchup=False
+) as view_poll_result_dag:
+    view_poll_result_task = PythonOperator(
+        task_id="view_poll_result_task_weekend",
+        python_callable=view_poll_result
+    )
+
+# View All Polls DAG (every 30 seconds)
 with DAG(
     dag_id="view_all_polls_dag",
     start_date=datetime(2024, 1, 1),
-    schedule_interval="*/30 * * * *",
+    schedule_interval=timedelta(seconds=30),
     catchup=False
 ) as view_all_polls_dag:
     view_all_polls_task = PythonOperator(
@@ -170,3 +215,13 @@ with DAG(
         python_callable=view_all_polls
     )
 
+with DAG(
+    dag_id="view_all_polls_dag_weekend",
+    start_date=datetime(2024, 1, 1),
+    schedule_interval="*/1 * * * 6,0",  # Sat & Sun
+    catchup=False
+) as view_all_polls_dag:
+    view_all_polls_task = PythonOperator(
+        task_id="view_all_polls_task_weekend",
+        python_callable=view_all_polls
+    )
